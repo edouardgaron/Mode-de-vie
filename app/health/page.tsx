@@ -12,6 +12,26 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { HabitCheck } from "@/components/HabitCheck";
 import { SliderInput } from "@/components/SliderInput";
 
+const WORKOUT_TYPES = [
+  "Musculation",
+  "Cardio",
+  "HIIT",
+  "Course à pied",
+  "Vélo",
+  "Natation",
+  "Yoga / Mobilité",
+  "Crossfit",
+  "Calisthenics",
+  "Boxe / Arts martiaux",
+  "Sports d'équipe",
+  "Étirements",
+];
+
+const MUSCLE_GROUPS = [
+  "Poitrine", "Dos", "Épaules", "Biceps", "Triceps",
+  "Jambes", "Abdos", "Fessiers", "Full body",
+];
+
 export default function HealthPage() {
   const today = getTodayString();
   const { toast } = useToast();
@@ -56,6 +76,9 @@ export default function HealthPage() {
       weight: todayEntry.weight,
       workoutDone: todayEntry.workoutDone || false,
       workoutType: todayEntry.workoutType,
+      workoutDuration: todayEntry.workoutDuration,
+      workoutIntensity: todayEntry.workoutIntensity,
+      musclesWorked: todayEntry.musclesWorked,
       walkDone: todayEntry.walkDone || false,
       walkDuration: todayEntry.walkDuration,
       sleepHours: todayEntry.sleepHours,
@@ -99,7 +122,77 @@ export default function HealthPage() {
           <HabitCheck label="Entraînement complété" checked={todayEntry.workoutDone || false} onChange={(v) => setTodayEntry({ ...todayEntry, workoutDone: v })} />
 
           {todayEntry.workoutDone && (
-            <Input value={todayEntry.workoutType || ""} onChange={(e) => setTodayEntry({ ...todayEntry, workoutType: e.target.value })} placeholder="Type: Musculation, cardio, yoga..." />
+            <div className="space-y-4 pl-4 border-l-2 border-green-500/30">
+              <div>
+                <Label>Type d'entraînement</Label>
+                <select
+                  value={todayEntry.workoutType || ""}
+                  onChange={(e) => setTodayEntry({ ...todayEntry, workoutType: e.target.value })}
+                  className="w-full mt-1 p-2 rounded-md border border-input bg-background text-foreground"
+                >
+                  <option value="">-- Choisir un type --</option>
+                  {WORKOUT_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Durée (minutes)</Label>
+                  <Input
+                    type="number"
+                    value={todayEntry.workoutDuration || ""}
+                    onChange={(e) => setTodayEntry({ ...todayEntry, workoutDuration: e.target.value ? Number(e.target.value) : undefined })}
+                    placeholder="45"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Intensité (1-10)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={todayEntry.workoutIntensity || ""}
+                    onChange={(e) => setTodayEntry({ ...todayEntry, workoutIntensity: e.target.value ? Number(e.target.value) : undefined })}
+                    placeholder="7"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Muscles travaillés</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {MUSCLE_GROUPS.map((m) => {
+                    const selected = (todayEntry.musclesWorked || []).includes(m);
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => {
+                          const current = todayEntry.musclesWorked || [];
+                          setTodayEntry({
+                            ...todayEntry,
+                            musclesWorked: selected
+                              ? current.filter((x) => x !== m)
+                              : [...current, m],
+                          });
+                        }}
+                        className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+                          selected
+                            ? "bg-green-500/20 border-green-500 text-green-400"
+                            : "border-input text-muted-foreground hover:border-green-500/50"
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           )}
 
           <HabitCheck label="Marche complétée" checked={todayEntry.walkDone || false} onChange={(v) => setTodayEntry({ ...todayEntry, walkDone: v })} />
@@ -226,9 +319,18 @@ export default function HealthPage() {
                         {entry.sleepHours}h sommeil | Vape: {entry.vapingLevel}/10 | Énergie: {entry.energyLevel}/10
                       </p>
                     </div>
-                    <div className="flex gap-2 text-xs">
-                      {entry.workoutDone && <span className="px-2 py-1 rounded bg-green-500/10 text-green-400">Entraînement</span>}
-                      {entry.walkDone && <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-400">Marche</span>}
+                    <div className="flex flex-col gap-1 items-end text-xs">
+                      {entry.workoutDone && (
+                        <span className="px-2 py-1 rounded bg-green-500/10 text-green-400">
+                          {entry.workoutType || "Entraînement"}
+                          {entry.workoutDuration ? ` · ${entry.workoutDuration}min` : ""}
+                          {entry.workoutIntensity ? ` · ${entry.workoutIntensity}/10` : ""}
+                        </span>
+                      )}
+                      {entry.workoutDone && entry.musclesWorked && entry.musclesWorked.length > 0 && (
+                        <span className="text-muted-foreground">{entry.musclesWorked.join(", ")}</span>
+                      )}
+                      {entry.walkDone && <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-400">Marche{entry.walkDuration ? ` · ${entry.walkDuration}min` : ""}</span>}
                     </div>
                   </div>
                 ))}

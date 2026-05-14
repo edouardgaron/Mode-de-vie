@@ -70,6 +70,9 @@ export interface HealthEntry {
   weight?: number;
   workoutDone: boolean;
   workoutType?: string;
+  workoutDuration?: number; // minutes
+  workoutIntensity?: number; // 1-10
+  musclesWorked?: string[];
   walkDone: boolean;
   walkDuration?: number; // minutes
   sleepHours?: number;
