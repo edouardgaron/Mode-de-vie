@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/toaster";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 export default function FinancesPage() {
   const month = getMonthString();
@@ -79,6 +80,23 @@ export default function FinancesPage() {
   const totalExpenses = (current.personalExpenses || 0) + (current.businessExpenses || 0);
   const netProfit = totalIncome - totalExpenses;
   const goalProgress = financialGoal ? (financialGoal.currentAmount / financialGoal.targetAmount) * 100 : 0;
+  const savingsRate = totalIncome > 0 ? Math.round(((current.savings || 0) / totalIncome) * 100) : 0;
+  const netWorth = (current.cashAvailable || 0) + (current.investments || 0) - (current.debt || 0);
+
+  // Last 3 months chart data
+  const last3MonthsData = entries
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-3)
+    .map(e => {
+      const inc = e.paintingRevenue + e.prefabRevenue + e.realEstateRevenue + e.otherRevenue;
+      const exp = e.personalExpenses + e.businessExpenses;
+      return {
+        month: formatMonthFrench(e.month).slice(0, 7),
+        Revenus: inc,
+        Dépenses: exp,
+        Épargne: e.savings,
+      };
+    });
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -153,7 +171,7 @@ export default function FinancesPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Revenu total</CardTitle>
@@ -178,7 +196,57 @@ export default function FinancesPage() {
             <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>{formatCurrency(netProfit)}</div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Taux d'épargne</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${savingsRate >= 20 ? 'text-green-400' : savingsRate >= 10 ? 'text-yellow-400' : 'text-red-400'}`}>{savingsRate}%</div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Net worth */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Valeur nette estimée</CardTitle>
+          <CardDescription>Cash + investissements - dettes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-bold ${netWorth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {formatCurrency(netWorth)}
+          </div>
+          <div className="flex gap-6 mt-3 text-sm text-muted-foreground">
+            <span>Cash: <span className="text-foreground">{formatCurrency(current.cashAvailable || 0)}</span></span>
+            <span>Invest.: <span className="text-foreground">{formatCurrency(current.investments || 0)}</span></span>
+            <span>Dettes: <span className="text-red-400">-{formatCurrency(current.debt || 0)}</span></span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Monthly comparison chart */}
+      {last3MonthsData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Comparaison mensuelle</CardTitle>
+            <CardDescription>3 derniers mois — revenus vs dépenses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={last3MonthsData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14.9%)" />
+                <XAxis dataKey="month" stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} />
+                <YAxis stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ background: '#111', border: '1px solid #222', color: '#fff' }} formatter={(v: number) => formatCurrency(v)} />
+                <Legend />
+                <Bar dataKey="Revenus" fill="#22c55e" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="Dépenses" fill="#ef4444" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="Épargne" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {financialGoal && (
         <Card>

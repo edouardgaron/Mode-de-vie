@@ -152,3 +152,14 @@ export interface AppData {
   journalEntries: JournalEntry[];
   weeklyReviews: WeeklyReview[];
 }
+
+export interface AppSettings {
+  email: string;
+  firstName: string;
+  dailyReminderTime: string;
+  enableDailyReminder: boolean;
+  enableWeeklySummary: boolean;
+  enablePushNotifications: boolean;
+  pushSubscription: PushSubscriptionJSON | null;
+  appUrl: string;
+}

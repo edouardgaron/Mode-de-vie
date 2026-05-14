@@ -1,0 +1,16 @@
+{
+  "name": "Mode de Vie",
+  "short_name": "Mode de Vie",
+  "description": "Ton système quotidien pour devenir la meilleure version de toi-même",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192", "sizes": "192x192", "type": "image/png", "purpose": "maskable any" },
+    { "src": "/icon-512", "sizes": "512x512", "type": "image/png", "purpose": "maskable any" }
+  ],
+  "categories": ["productivity", "health", "lifestyle"],
+  "screenshots": []
+}

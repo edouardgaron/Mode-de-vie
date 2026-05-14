@@ -1,4 +1,4 @@
-import { AppData, DailyCheckin, Goal, BusinessFocus, HealthEntry, FinanceEntry, FinancialGoal, JournalEntry, WeeklyReview } from '@/types';
+import { AppData, AppSettings, DailyCheckin, Goal, BusinessFocus, HealthEntry, FinanceEntry, FinancialGoal, JournalEntry, WeeklyReview } from '@/types';
 
 const KEYS = {
   CHECKINS: 'mdv_checkins',
@@ -10,6 +10,7 @@ const KEYS = {
   JOURNAL: 'mdv_journal',
   REVIEWS: 'mdv_reviews',
   INITIALIZED: 'mdv_initialized',
+  SETTINGS: 'mdv_settings',
 } as const;
 
 function safeGet<T>(key: string, fallback: T): T {
@@ -165,4 +166,17 @@ export const storage = {
   },
   isInitialized: (): boolean => safeGet(KEYS.INITIALIZED, false),
   setInitialized: () => safeSet(KEYS.INITIALIZED, true),
+
+  // Settings
+  getSettings: (): AppSettings => safeGet(KEYS.SETTINGS, {
+    email: '',
+    firstName: 'Édouard',
+    dailyReminderTime: '07:00',
+    enableDailyReminder: false,
+    enableWeeklySummary: false,
+    enablePushNotifications: false,
+    pushSubscription: null,
+    appUrl: '',
+  }),
+  saveSettings: (settings: AppSettings) => safeSet(KEYS.SETTINGS, settings),
 };

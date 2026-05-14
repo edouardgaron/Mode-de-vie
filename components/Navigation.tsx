@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CheckSquare, Target, Briefcase, Heart, DollarSign, BookOpen, BarChart2, Menu, X } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Target, Briefcase, Heart, DollarSign, BookOpen, BarChart2, Menu, X, Timer, Settings } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,8 @@ const navItems = [
   { href: "/finances", label: "Finances", icon: DollarSign },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/review", label: "Revue Hebdo", icon: BarChart2 },
+  { href: "/timer", label: "Minuterie", icon: Timer },
+  { href: "/settings", label: "Paramètres", icon: Settings },
 ];
 
 export function Navigation() {

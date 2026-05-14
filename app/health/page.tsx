@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toaster";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { HabitCheck } from "@/components/HabitCheck";
 import { SliderInput } from "@/components/SliderInput";
 
@@ -34,23 +34,19 @@ export default function HealthPage() {
       setTodayEntry(existing);
     }
 
-    const last7 = allEntries
-      .filter(e => {
-        const date = new Date(e.date);
-        const now = new Date();
-        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-        return diffDays < 7;
-      })
+    const last14 = allEntries
       .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-14)
       .map(e => ({
-        date: new Date(e.date).toLocaleDateString('fr-CA', { month: '2-digit', day: '2-digit' }),
+        date: new Date(e.date + 'T12:00:00').toLocaleDateString('fr-CA', { month: '2-digit', day: '2-digit' }),
         vaping: e.vapingLevel,
         sleep: e.sleepHours || 0,
         workout: e.workoutDone ? 1 : 0,
         walk: e.walkDone ? 1 : 0,
         energy: e.energyLevel,
+        stress: e.stressLevel,
       }));
-    setChartData(last7);
+    setChartData(last14);
   }, []);
 
   const handleSaveEntry = () => {
@@ -133,34 +129,42 @@ export default function HealthPage() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle>Vape - 7 derniers jours</CardTitle>
+              <CardTitle>Énergie — 14 derniers jours</CardTitle>
+              <CardDescription>Niveau d'énergie quotidien (1-10)</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="energyGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14.9%)" />
-                  <XAxis dataKey="date" stroke="hsl(0 0% 63.9%)" />
-                  <YAxis stroke="hsl(0 0% 63.9%)" domain={[0, 10]} />
-                  <Tooltip contentStyle={{ background: 'hsl(0 0% 7%)', border: '1px solid hsl(0 0% 14.9%)' }} />
-                  <Line type="monotone" dataKey="vape" stroke="#ef4444" dot={{ fill: '#ef4444' }} strokeWidth={2} />
-                </LineChart>
+                  <XAxis dataKey="date" stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} />
+                  <YAxis stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} domain={[0, 10]} />
+                  <Tooltip contentStyle={{ background: '#111', border: '1px solid #222', color: '#fff' }} />
+                  <Area type="monotone" dataKey="energy" stroke="#22c55e" fill="url(#energyGrad)" strokeWidth={2} name="Énergie" dot={{ fill: '#22c55e', r: 3 }} />
+                </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Activités - 7 derniers jours</CardTitle>
+              <CardTitle>Activités — 14 derniers jours</CardTitle>
+              <CardDescription>Entraînements et marches</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14.9%)" />
-                  <XAxis dataKey="date" stroke="hsl(0 0% 63.9%)" />
-                  <YAxis stroke="hsl(0 0% 63.9%)" />
-                  <Tooltip contentStyle={{ background: 'hsl(0 0% 7%)', border: '1px solid hsl(0 0% 14.9%)' }} />
-                  <Bar dataKey="workout" fill="#22c55e" name="Entraînement" />
-                  <Bar dataKey="walk" fill="#3b82f6" name="Marche" />
+                  <XAxis dataKey="date" stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} />
+                  <YAxis stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: '#111', border: '1px solid #222', color: '#fff' }} />
+                  <Bar dataKey="workout" fill="#22c55e" name="Entraînement" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="walk" fill="#3b82f6" name="Marche" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -168,17 +172,36 @@ export default function HealthPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Énergie - 7 derniers jours</CardTitle>
+              <CardTitle>Niveau de vape — 14 derniers jours</CardTitle>
+              <CardDescription>0 = aucune, 10 = beaucoup (objectif : descendre)</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14.9%)" />
-                  <XAxis dataKey="date" stroke="hsl(0 0% 63.9%)" />
-                  <YAxis stroke="hsl(0 0% 63.9%)" domain={[0, 10]} />
-                  <Tooltip contentStyle={{ background: 'hsl(0 0% 7%)', border: '1px solid hsl(0 0% 14.9%)' }} />
-                  <Line type="monotone" dataKey="energy" stroke="#22c55e" dot={{ fill: '#22c55e' }} strokeWidth={2} />
+                  <XAxis dataKey="date" stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} />
+                  <YAxis stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} domain={[0, 10]} />
+                  <Tooltip contentStyle={{ background: '#111', border: '1px solid #222', color: '#fff' }} />
+                  <Line type="monotone" dataKey="vaping" stroke="#ef4444" dot={{ fill: '#ef4444', r: 3 }} strokeWidth={2} name="Vape" />
                 </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Sommeil — 14 derniers jours</CardTitle>
+              <CardDescription>Heures de sommeil par nuit</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14.9%)" />
+                  <XAxis dataKey="date" stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} />
+                  <YAxis stroke="hsl(0 0% 40%)" tick={{ fill: 'hsl(0 0% 40%)', fontSize: 11 }} domain={[0, 12]} />
+                  <Tooltip contentStyle={{ background: '#111', border: '1px solid #222', color: '#fff' }} />
+                  <Bar dataKey="sleep" fill="#a855f7" name="Sommeil (h)" radius={[3, 3, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
